@@ -239,3 +239,8 @@ capital_gain
 capital_loss
 income
 ```
+
+## Enjeux éthiques
+Nous sommes ici sur un modele local qui a été généré par un MACBOOK PRO M2 en 25s pour entrainer 3 modèles : 1 regression RandomForest, 1 regression logisitique et 1 CNN (faible usage GPU)
+L'usage via API de ce modèle est faible coté CPU 
+-> c'est un "non-sujet" ici selon nous 
