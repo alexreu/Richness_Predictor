@@ -116,13 +116,24 @@ L'API expose actuellement 3 endpoints principaux. Le modele n'est pas encore cab
 |---|---|---|---|
 | `GET` | `/` | Verifier que l'API repond | Message `Richness Predictor API is running.` |
 | `GET` | `/health` | Healthcheck du service | Message `Service healthy.` |
-| `POST` | `/predict` | Point d'entree futur pour la prediction | Message `Model not connected yet.` |
+| `POST` | `/predict` | Point d'entree pour la prediction | Message `{ status: 200, prediction: ">50k" }` |
 
-Endpoints complementaires :
+Exemple de JSON pour la prédiction: 
 
-| Methode | Endpoint | Role |
-|---|---|---|
-| `GET` | `/metrics` | Exposition des metriques FastAPI pour Prometheus |
+```json
+{
+  "age": 30,
+  "workclass": "Private",
+  "education": "HS-grad",
+  "education_num": 9,
+  "marital_status": "Widowed",
+  "occupation": "Prof-specialty",
+  "relationship": "Unmarried",
+  "capital_gain": 0,
+  "capital_loss": 2824,
+  "hours_per_week": 45
+}
+```
 
 
 Lancer l'API et le monitoring :
