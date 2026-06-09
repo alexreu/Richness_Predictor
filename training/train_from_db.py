@@ -157,14 +157,6 @@ def get_pipeline_candidates() -> list[PipelineCandidate]:
     ]
 
 
-def compute_business_score(metrics: dict[str, float]) -> float:
-    return (
-        0.50 * metrics["precision_positive"]
-        + 0.30 * metrics["recall_positive"]
-        + 0.20 * metrics["balanced_accuracy"]
-    )
-
-
 def evaluate_candidate(candidate: PipelineCandidate, model, X_test, y_test) -> dict:
     inference_start = time.perf_counter()
     y_pred = model.predict(X_test)
@@ -183,7 +175,6 @@ def evaluate_candidate(candidate: PipelineCandidate, model, X_test, y_test) -> d
         "inference_duration_seconds": inference_duration,
         "inference_latency_ms_per_sample": inference_duration / len(X_test) * 1000,
     }
-    metrics["business_score"] = compute_business_score(metrics)
 
     logger.info(f"Rapport {candidate.name}:\n{classification_report(y_test, y_pred)}")
     return metrics
@@ -227,7 +218,6 @@ def train_and_compare_pipelines(X_train, X_test, y_train, y_test) -> tuple[Pipel
             "recall_positive",
             "f1_positive",
             "roc_auc",
-            "business_score",
             "best_cv_f1",
             "training_duration_seconds",
             "training_cpu_seconds",
@@ -239,15 +229,15 @@ def train_and_compare_pipelines(X_train, X_test, y_train, y_test) -> tuple[Pipel
         for param_name, param_value in grid.best_params_.items():
             mlflow.log_param(f"{candidate.name}_{param_name}", str(param_value))
 
-        if metrics["business_score"] > best_score:
-            best_score = metrics["business_score"]
+        if metrics["f1_positive"] > best_score:
+            best_score = metrics["f1_positive"]
             best_model = grid.best_estimator_
 
     if best_model is None:
         raise RuntimeError("Aucun pipeline n'a pu etre entraine")
 
     results_df = pd.DataFrame(results).sort_values(
-        by="business_score", ascending=False
+        by="f1_positive", ascending=False
     )
     return best_model, results_df
 
@@ -255,10 +245,9 @@ def train_and_compare_pipelines(X_train, X_test, y_train, y_test) -> tuple[Pipel
 def print_training_report(results_df: pd.DataFrame) -> None:
     display_columns = [
         "pipeline",
-        "business_score",
+        "f1_positive",
         "precision_positive",
         "recall_positive",
-        "f1_positive",
         "balanced_accuracy",
         "training_duration_seconds",
         "inference_latency_ms_per_sample",
@@ -298,7 +287,7 @@ def main() -> None:
         logger.info("\n" + results_df.to_string(index=False))
         print_training_report(results_df)
         mlflow.log_metric("total_training_duration_seconds", total_training_duration)
-        mlflow.log_metric("best_business_score", results_df.iloc[0]["business_score"])
+        mlflow.log_metric("best_f1_positive", results_df.iloc[0]["f1_positive"])
 
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
         joblib.dump(model, MODEL_PATH)
