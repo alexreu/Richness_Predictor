@@ -53,13 +53,7 @@ Le meilleur pipeline est sauvegarde dans :
 artifacts/model.joblib
 ```
 
-Les rapports de comparaison sont exportes dans :
-
-```text
-artifacts/training_metrics.csv
-artifacts/training_metrics.json
-artifacts/training_metrics.html
-```
+Les metriques de comparaison sont enregistrees dans MLflow.
 
 Metriques comparees :
 
@@ -108,13 +102,10 @@ Modele retenu automatiquement :
 neural_network_mlp
 ```
 
-Artefacts generes :
+Artefact genere localement :
 
 ```text
 artifacts/model.joblib
-artifacts/training_metrics.csv
-artifacts/training_metrics.json
-artifacts/training_metrics.html
 ```
 
 ## Endpoints API
@@ -132,7 +123,6 @@ Endpoints complementaires :
 | Methode | Endpoint | Role |
 |---|---|---|
 | `GET` | `/metrics` | Exposition des metriques FastAPI pour Prometheus |
-| `GET` | `/training-metrics` | Consultation JSON du dernier rapport d'entrainement si disponible |
 
 
 Lancer l'API et le monitoring :

@@ -4,7 +4,6 @@ from dataclasses import dataclass
 
 import joblib
 import mlflow
-import mlflow.sklearn
 import pandas as pd
 from loguru import logger
 from sklearn.compose import ColumnTransformer
@@ -31,9 +30,6 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATABASE_PATH = os.path.join(PROJECT_ROOT, "storage", "ml.db")
 DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 MODEL_PATH = os.path.join(PROJECT_ROOT, "artifacts", "model.joblib")
-METRICS_CSV_PATH = os.path.join(PROJECT_ROOT, "artifacts", "training_metrics.csv")
-METRICS_JSON_PATH = os.path.join(PROJECT_ROOT, "artifacts", "training_metrics.json")
-METRICS_HTML_PATH = os.path.join(PROJECT_ROOT, "artifacts", "training_metrics.html")
 LOG_PATH = os.path.join(PROJECT_ROOT, "logs", "training.log")
 MLFLOW_TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "sqlite:///mlflow.db")
 
@@ -224,20 +220,24 @@ def train_and_compare_pipelines(X_train, X_test, y_train, y_test) -> tuple[Pipel
         results.append(metrics)
 
         logger.info(f"{candidate.name} metrics: {metrics}")
-        mlflow.log_metric(f"{candidate.name}_business_score", metrics["business_score"])
-        mlflow.log_metric(f"{candidate.name}_f1_positive", metrics["f1_positive"])
-        mlflow.log_metric(
-            f"{candidate.name}_precision_positive", metrics["precision_positive"]
-        )
-        mlflow.log_metric(f"{candidate.name}_recall_positive", metrics["recall_positive"])
-        mlflow.log_metric(
-            f"{candidate.name}_training_duration_seconds",
-            metrics["training_duration_seconds"],
-        )
-        mlflow.log_metric(
-            f"{candidate.name}_inference_latency_ms_per_sample",
-            metrics["inference_latency_ms_per_sample"],
-        )
+        metric_names = [
+            "accuracy",
+            "balanced_accuracy",
+            "precision_positive",
+            "recall_positive",
+            "f1_positive",
+            "roc_auc",
+            "business_score",
+            "best_cv_f1",
+            "training_duration_seconds",
+            "training_cpu_seconds",
+            "inference_latency_ms_per_sample",
+        ]
+        for metric_name in metric_names:
+            mlflow.log_metric(f"{candidate.name}_{metric_name}", metrics[metric_name])
+
+        for param_name, param_value in grid.best_params_.items():
+            mlflow.log_param(f"{candidate.name}_{param_name}", str(param_value))
 
         if metrics["business_score"] > best_score:
             best_score = metrics["business_score"]
@@ -250,19 +250,6 @@ def train_and_compare_pipelines(X_train, X_test, y_train, y_test) -> tuple[Pipel
         by="business_score", ascending=False
     )
     return best_model, results_df
-
-
-def save_training_report(results_df: pd.DataFrame) -> None:
-    os.makedirs(os.path.dirname(METRICS_CSV_PATH), exist_ok=True)
-    results_df.to_csv(METRICS_CSV_PATH, index=False)
-    results_df.to_json(METRICS_JSON_PATH, orient="records", indent=2)
-    results_df.to_html(METRICS_HTML_PATH, index=False)
-    mlflow.log_artifact(METRICS_CSV_PATH)
-    mlflow.log_artifact(METRICS_JSON_PATH)
-    mlflow.log_artifact(METRICS_HTML_PATH)
-    logger.info(f"Rapport metriques CSV: {METRICS_CSV_PATH}")
-    logger.info(f"Rapport metriques JSON: {METRICS_JSON_PATH}")
-    logger.info(f"Rapport metriques HTML: {METRICS_HTML_PATH}")
 
 
 def print_training_report(results_df: pd.DataFrame) -> None:
@@ -283,7 +270,7 @@ def print_training_report(results_df: pd.DataFrame) -> None:
     print("\n=== Comparaison des pipelines ===")
     print(report.to_string(index=False))
     print(f"\nMeilleur pipeline: {results_df.iloc[0]['pipeline']}")
-    print(f"Rapport HTML: {METRICS_HTML_PATH}\n")
+    print("Les metriques detaillees sont disponibles dans MLflow.\n")
 
 
 def main() -> None:
@@ -315,8 +302,6 @@ def main() -> None:
 
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
         joblib.dump(model, MODEL_PATH)
-        save_training_report(results_df)
-        mlflow.sklearn.log_model(model, "model")
 
         logger.info(f"Meilleur pipeline : {results_df.iloc[0]['pipeline']}")
         logger.info(f"Modele sauvegarde : {MODEL_PATH}")
