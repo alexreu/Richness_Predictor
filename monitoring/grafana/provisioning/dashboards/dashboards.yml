@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: Richness Predictor
+    orgId: 1
+    folder: Richness Predictor
+    type: file
+    disableDeletion: false
+    editable: true
+    options:
+      path: /etc/grafana/dashboards

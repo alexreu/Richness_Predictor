@@ -65,6 +65,7 @@ db.sqlite3-journal
 artifacts/
 logs/
 mlruns/
+mlflow.db
 storage/*.db
 storage/*.db-journal
 
