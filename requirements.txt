@@ -2,3 +2,9 @@ pandas
 numpy
 scikit-learn
 joblib
+sqlalchemy
+loguru
+mlflow
+fastapi
+uvicorn[standard]
+prometheus-fastapi-instrumentator
