@@ -202,18 +202,6 @@ Verifier les targets Prometheus :
 http://localhost:9090/targets
 ```
 
-Ouvrir le dashboard Grafana :
-
-```text
-http://localhost:3000
-```
-
-Identifiants Grafana par defaut :
-
-```text
-admin / admin
-```
-
 ## Choix de donnees
 
 Les colonnes `race`, `sex`, `native.country` et `fnlwgt` ne sont pas utilisees dans le pipeline d'entrainement actif.

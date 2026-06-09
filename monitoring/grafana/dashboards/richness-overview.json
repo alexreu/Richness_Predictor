@@ -314,7 +314,7 @@
   "timepicker": {},
   "timezone": "browser",
   "title": "Richness Predictor Overview",
-  "uid": "richness-overview",
+  "uid": "richness-overview-root",
   "version": 1,
   "weekStart": ""
 }
